@@ -28,6 +28,10 @@
   <code>SwiftUI</code> · <code>SwiftData</code> · <code>WidgetKit</code> · <code>App Intents</code> · <code>StoreKit</code> · <code>offline-first</code>
 </p>
 
+<p align="center">
+  <a href="https://github.com/SenithUmesha/setwise-app/actions/workflows/docs-check.yml"><img src="https://github.com/SenithUmesha/setwise-app/actions/workflows/docs-check.yml/badge.svg" alt="Docs integrity" /></a>
+</p>
+
 ---
 
 ## why i built it
