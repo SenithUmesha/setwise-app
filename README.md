@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  A native iPhone & iPad workout tracker that connects the work you log with recovery, progress, and the next session.
+  A private, local-first iPhone & iPad strength-training app that connects planning, set-by-set logging, recovery, progress, and review.
 </p>
 
 <p align="center">
@@ -25,7 +25,7 @@
 </p>
 
 <p align="center">
-  <code>SwiftUI</code> · <code>SwiftData</code> · <code>WidgetKit</code> · <code>App Intents</code> · <code>StoreKit</code> · <code>offline-first</code>
+  <code>SwiftUI</code> · <code>SwiftData</code> · <code>WidgetKit</code> · <code>App Intents</code> · <code>StoreKit 2</code> · <code>local-first</code>
 </p>
 
 <p align="center">
@@ -34,27 +34,51 @@
 
 ---
 
-## why i built it
+## SetWise 2.0
 
-Most workout apps are good at recording sets. What I wanted was the part after that too: _what did this session actually change, what has been recovering, and what should I know before I train again?_
+**Version 2.0.0 · build 33** was submitted to App Review on **September 26, 2026**.
 
-So SetWise became a pretty simple loop:
+It is the first major expansion beyond the original recovery-focused release. The existing App Store build remains available while 2.0 is under review.
 
 ```text
-plan a workout
-      ↓
-log the sets you actually complete
-      ↓
-update recovery + training history
-      ↓
-review progress
-      ↓
-come back with context for the next session
+Plan
+  ↓
+Train
+  ↓
+Finish
+  ↓
+Review
+  ↓
+Use the context in the next session
 ```
 
-No social feed. No AI coach pretending to know your body. No account required just to log a workout.
+2.0 brings workout planning, freestyle training, richer set logging, history editing, progress analytics, muscle insights, reports, recaps, import/export, recovery, widgets, and the Free/Pro model into one product loop.
 
-It is intentionally a **private, local-first iOS app** built around the gym session itself.
+---
+
+## why i built it
+
+Most workout apps are good at recording sets. What I wanted was the part around those sets too: _what was I supposed to train, what did I actually do, what changed, and what context should I have before the next session?_
+
+So SetWise became a simple loop built around completed training:
+
+```text
+plan or start freestyle
+        ↓
+log the sets you actually complete
+        ↓
+finish the session
+        ↓
+update history + recovery + progress
+        ↓
+review what changed
+        ↓
+come back with context for the next workout
+```
+
+No social feed. No account required to log a workout. No ads. No recurring subscription. No AI coach pretending to know your body.
+
+It is intentionally a **private, local-first native iOS product** built around the gym session itself.
 
 ---
 
@@ -70,55 +94,84 @@ It is intentionally a **private, local-first iOS app** built around the gym sess
   <tr>
     <td align="center"><sub>today</sub></td>
     <td align="center"><sub>plan</sub></td>
-    <td align="center"><sub>track</sub></td>
-    <td align="center"><sub>history</sub></td>
+    <td align="center"><sub>train</sub></td>
+    <td align="center"><sub>review</sub></td>
   </tr>
 </table>
 
 ### plan
 
-Build reusable workout programs around the way you actually train.
+Build reusable training around the way you actually work out, or skip the plan and start freestyle.
 
-- fixed-weekday and rotating plans
+- saved workout plans and templates
+- fixed-weekday and rotating scheduling
 - exercise prescriptions with target sets and rep ranges
-- one-tap access to the next scheduled session
-- saved routines you can keep tweaking instead of rebuilding every week
+- one-tap access to the next planned session
+- freestyle workouts when the day does not fit the plan
+- reusable routines that can evolve without rewriting completed history
 
-### track
+### train
 
-The active workout screen is designed to stay useful between sets, not become another thing to fight with in the gym.
+The active workout is designed for the few seconds between sets, not for sitting at a desk filling out a form.
 
-- previous weight + reps kept close to the current set
-- warm-up and working sets in the same flow
-- optional RIR tracking
-- automatic rest timer with quick adjustments
-- plate calculator without leaving the workout
-- exercise guides with reviewed demo media when available
-- active-session persistence so leaving the app does not throw away the workout
+- previous-performance context beside the current work
+- warm-up, working, back-off, drop, and failure set types
+- flexible load, reps, and optional effort tracking
+- supersets and circuits
+- exercise substitution without rebuilding the session
+- automatic rest timing with quick adjustments
+- plate calculator and training utilities
+- reviewed exercise-guide media when available
+- active-session persistence across app backgrounding and interruptions
+
+### finish
+
+A completed workout becomes a snapshot of what actually happened.
+
+That matters because the plan can change tomorrow without rewriting last Tuesday. Completed sets feed the same local history used by recovery, progress, muscle analysis, reports, recaps, widgets, and system actions.
 
 ### review
 
-Finishing a workout updates the context around your training automatically.
+The point of logging is to make the next session better informed.
 
-- completed-session history
-- gym-day calendar
-- exercise progress charts
-- muscle-level recovery estimates
-- weighted muscle distribution
-- monthly reports
+- unlimited raw workout history
+- rolling 12-month workout calendar
+- exercise progress trends
+- muscle distribution and training insights
+- workout-derived recovery context
+- monthly reports and comparisons
 - yearly training recaps
+- editable completed-session history
 
-Recovery is a **training signal**, not a medical claim. It is derived from the work you log and is there to give the next session some context, not tell you whether you are injured or guarantee readiness.
+Recovery is a **training signal**, not a medical claim. It is derived from the work you log and is there to provide context, not diagnose injury or guarantee readiness.
 
 ---
 
-## useful without turning into a subscription maze
+## useful before you pay
 
-The core workout experience stays available for free: planning, workout tracking, set logging, exercise guides, recent history, the current calendar, rest timer, plate calculator, recovery context, and local data export.
+The free app keeps the core training loop genuinely useful.
 
-**SetWise Pro** is a single lifetime in-app purchase that unlocks the deeper review layer: unlimited plans, the full training archive, longer progress ranges, muscle distribution, monthly reports, yearly recaps, recap sharing, and Home Screen widgets.
+It includes unlimited workout logging and raw workout history, core recovery context, exercise guides and utilities, local export, a rolling 12-month calendar, limited planning tools, and useful recent progress views.
 
-No recurring subscription.
+**SetWise Pro** is one lifetime purchase. It expands the product with deeper planning capacity, longer progress ranges, exercise and muscle insights, older reports, yearly recaps, widgets, and advanced customization.
+
+No recurring billing. The workout logger is not a subscription trial shell.
+
+---
+
+## import, export, and ownership
+
+SetWise 2.0 adds user-controlled data movement without turning the app into a cloud account product.
+
+- on-device Hevy CSV import
+- local user-controlled export
+- JSON export/recovery paths
+- delete-all-data controls
+- no SetWise account required
+
+The production app still treats the local SwiftData store as the source of truth.
+
+Private iCloud/CloudKit sync is planned for a separately tested post-2.0 release. It is **not** part of build 33 currently in review.
 
 ---
 
@@ -128,20 +181,21 @@ SetWise was also my excuse to build a product properly around Apple platform fea
 
 ```text
 SwiftUI               screens + interaction
-SwiftData              local workout/program/history store
-WidgetKit              recovery, calendar, streak + next-workout widgets
+SwiftData              local plans, workouts, history + training state
+WidgetKit              recovery, calendar, streak + next-workout surfaces
 App Intents            Shortcuts / system actions
 App Groups             lightweight widget snapshot sharing
-UserNotifications      local reminders + recovery-ready notifications
+UserNotifications      local reminders + training notifications
 BGTaskScheduler        opportunistic background refresh
-StoreKit               lifetime Pro purchase + restore flow
+StoreKit 2             lifetime Pro purchase + restore flow
 XCTest / UI tests      domain + workout-flow verification
+TestFlight             release-candidate validation
 Privacy manifest       explicit platform privacy configuration
 ```
 
-The production app has **no user account, no workout-data backend, no ads, and no in-app analytics SDK**. Training data stays on-device. Exercise demo media is the main online content path and is fetched only when needed.
+The production app has **no user account, no workout-data backend, no ads, and no in-app analytics SDK**. Training data stays on-device. Exercise demo media is fetched only when needed and remains separate from private workout history.
 
-If you're interested in the implementation choices rather than the product tour, I wrote them up in **[docs/engineering.md](docs/engineering.md)**.
+If you're interested in the implementation choices rather than the product tour, they are documented in **[docs/engineering.md](docs/engineering.md)**.
 
 ---
 
@@ -167,19 +221,25 @@ If you're interested in the implementation choices rather than the product tour,
 ## a few decisions i care about
 
 **local data is the source of truth**  
-Workouts, programs, set history, settings, and recovery inputs live on the device. The app does not need a server round-trip to tell you what you did five minutes ago.
+Plans, workouts, set history, settings, and training-derived state live on the device. The app does not need a server round-trip to tell you what you did five minutes ago.
+
+**completed workouts are immutable history by default**  
+A finished session describes what actually happened. Editing a template or future plan should not silently rewrite previous training.
 
 **recovery is calculated, not stored as fake truth**  
-The app derives recovery from source data and current time. A percentage can change as time passes; it should not become a permanently stored fact just because it was once calculated at 62%.
+Recovery is derived from training source data and current time. A percentage can change as time passes; it should not become permanent truth simply because it was once calculated at a particular moment.
+
+**analytics project from the same history**  
+Progress, muscle distribution, reports, recaps, calendar state, and recovery all originate from completed training rather than being maintained as unrelated copies of the same truth.
 
 **widgets get a snapshot, not the whole app database**  
-The main app writes a small App Group snapshot for the widget extension. That keeps the extension lightweight and keeps the main model layer in one place.
+The main app writes a small App Group snapshot for the widget extension. That keeps the extension lightweight and leaves authoritative calculations in the main product.
 
 **background work is helpful, not required for correctness**  
-iOS decides when background refresh runs. SetWise refreshes the important state when the app launches, returns to the foreground, or workout data changes, so an unpredictable background schedule cannot break the core experience.
+iOS decides when background refresh runs. SetWise refreshes important state during deterministic lifecycle events too, so an unpredictable background schedule cannot break the core experience.
 
-**finished workouts are history**  
-Completed sessions are treated as snapshots of what actually happened. Program edits should not quietly rewrite the workout you completed last Tuesday.
+**Free should be a real workout app**  
+Unlimited logging and raw history remain useful without payment. Pro sells depth and range rather than access to the basic act of recording a workout.
 
 ---
 
@@ -189,14 +249,32 @@ SetWise is deliberately boring about your data:
 
 - no account
 - no advertising
+- no social feed
 - no tracking pixels or in-app analytics SDK
 - workout history stays on-device
-- local export when you want a copy
+- local import/export under user control
 - delete-all-data flow in Settings
 - purchases handled by Apple
 - widgets share only a lightweight local snapshot
+- no iCloud training-data sync in 2.0.0 build 33
 
 Full policy: **[setwise.senithumesha.com/privacy](https://setwise.senithumesha.com/privacy)**
+
+---
+
+## release status
+
+| | |
+|---|---|
+| Marketing version | `2.0.0` |
+| Build | `33` |
+| Status | Submitted to App Review on September 26, 2026 |
+| Minimum OS | iOS 17 |
+| Purchase model | Free core + one-time lifetime SetWise Pro |
+| Primary data model | Local-first SwiftData |
+| Cloud sync | Planned post-2.0; not included in build 33 |
+
+A submitted App Store build is treated as frozen. New product work belongs in the next release rather than being slipped into a binary already under review.
 
 ---
 
@@ -204,7 +282,7 @@ Full policy: **[setwise.senithumesha.com/privacy](https://setwise.senithumesha.c
 
 This is the **public product + engineering showcase** for SetWise.
 
-The production application source is kept private. This repo exists so I can share the product, screenshots, architecture decisions, and the parts of the build I find interesting without publishing the commercial codebase or release configuration.
+The production application source is kept private. This repo exists so I can share the product, screenshots, architecture decisions, release thinking, and the parts of the build I find interesting without publishing the commercial codebase, signing setup, or release configuration.
 
 If you are here because of my GitHub profile, this is the native-iOS side quest that got a little out of hand.
 
