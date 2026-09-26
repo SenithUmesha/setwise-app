@@ -36,9 +36,9 @@
 
 ## SetWise 2.0
 
-**Version 2.0.0 · build 33** was submitted to App Review on **September 26, 2026**.
+**Version 2.0.0 · build 33** is live on the **App Store**.
 
-It is the first major expansion beyond the original recovery-focused release. The existing App Store build remains available while 2.0 is under review.
+It is the first major expansion beyond the original recovery-focused release and the current production version of SetWise.
 
 ```text
 Plan
@@ -171,7 +171,7 @@ SetWise 2.0 adds user-controlled data movement without turning the app into a cl
 
 The production app still treats the local SwiftData store as the source of truth.
 
-Private iCloud/CloudKit sync is planned for a separately tested post-2.0 release. It is **not** part of build 33 currently in review.
+Private iCloud/CloudKit sync is planned for a separately tested post-2.0 release. It is **not** part of build 33.
 
 ---
 
@@ -189,7 +189,7 @@ UserNotifications      local reminders + training notifications
 BGTaskScheduler        opportunistic background refresh
 StoreKit 2             lifetime Pro purchase + restore flow
 XCTest / UI tests      domain + workout-flow verification
-TestFlight             release-candidate validation
+TestFlight             release validation
 Privacy manifest       explicit platform privacy configuration
 ```
 
@@ -268,13 +268,13 @@ Full policy: **[setwise.senithumesha.com/privacy](https://setwise.senithumesha.c
 |---|---|
 | Marketing version | `2.0.0` |
 | Build | `33` |
-| Status | Submitted to App Review on September 26, 2026 |
+| Status | Live on the App Store |
 | Minimum OS | iOS 17 |
 | Purchase model | Free core + one-time lifetime SetWise Pro |
 | Primary data model | Local-first SwiftData |
 | Cloud sync | Planned post-2.0; not included in build 33 |
 
-A submitted App Store build is treated as frozen. New product work belongs in the next release rather than being slipped into a binary already under review.
+The shipped 2.0 binary is treated as frozen. New product work belongs in the next release rather than changing the meaning of a production build after release.
 
 ---
 
