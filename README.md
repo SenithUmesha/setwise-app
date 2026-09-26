@@ -82,22 +82,36 @@ It is intentionally a **private, local-first native iOS product** built around t
 
 ---
 
-## the app
+## SetWise 2.0 in screenshots
 
 <table>
   <tr>
-    <td align="center"><img src="https://setwise.senithumesha.com/images/setwise/release-2/workout-home.png" width="210" alt="SetWise Today screen" /></td>
-    <td align="center"><img src="https://setwise.senithumesha.com/images/setwise/release-2/saved-routine.png" width="210" alt="SetWise saved workout routine" /></td>
-    <td align="center"><img src="https://setwise.senithumesha.com/images/setwise/release-2/active-workout.png" width="210" alt="SetWise active workout" /></td>
-    <td align="center"><img src="https://setwise.senithumesha.com/images/setwise/release-2/calendar.png" width="210" alt="SetWise workout calendar" /></td>
+    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/1.png" width="210" alt="SetWise 2.0 screenshot 1" /></td>
+    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/2.png" width="210" alt="SetWise 2.0 screenshot 2" /></td>
+    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/3.png" width="210" alt="SetWise 2.0 screenshot 3" /></td>
+    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/4.png" width="210" alt="SetWise 2.0 screenshot 4" /></td>
   </tr>
   <tr>
-    <td align="center"><sub>today</sub></td>
-    <td align="center"><sub>plan</sub></td>
-    <td align="center"><sub>train</sub></td>
-    <td align="center"><sub>review</sub></td>
+    <td align="center"><sub>01</sub></td>
+    <td align="center"><sub>02</sub></td>
+    <td align="center"><sub>03</sub></td>
+    <td align="center"><sub>04</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/5.png" width="210" alt="SetWise 2.0 screenshot 5" /></td>
+    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/6.png" width="210" alt="SetWise 2.0 screenshot 6" /></td>
+    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/7.png" width="210" alt="SetWise 2.0 screenshot 7" /></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>05</sub></td>
+    <td align="center"><sub>06</sub></td>
+    <td align="center"><sub>07</sub></td>
+    <td></td>
   </tr>
 </table>
+
+These are the same current SetWise screenshots used by the portfolio showcase, keeping the public product repo and portfolio presentation aligned.
 
 ### plan
 
@@ -196,25 +210,6 @@ Privacy manifest       explicit platform privacy configuration
 The production app has **no user account, no workout-data backend, no ads, and no in-app analytics SDK**. Training data stays on-device. Exercise demo media is fetched only when needed and remains separate from private workout history.
 
 If you're interested in the implementation choices rather than the product tour, they are documented in **[docs/engineering.md](docs/engineering.md)**.
-
----
-
-## some of the deeper screens
-
-<table>
-  <tr>
-    <td align="center"><img src="https://setwise.senithumesha.com/images/setwise/release-2/progress-analytics.png" width="230" alt="SetWise progress analytics" /></td>
-    <td align="center"><img src="https://setwise.senithumesha.com/images/setwise/release-2/muscle-insights.png" width="230" alt="SetWise muscle insights" /></td>
-    <td align="center"><img src="https://setwise.senithumesha.com/images/setwise/release-2/monthly-report.png" width="230" alt="SetWise monthly report" /></td>
-    <td align="center"><img src="https://setwise.senithumesha.com/images/setwise/release-2/training-recap.png" width="230" alt="SetWise yearly training recap" /></td>
-  </tr>
-  <tr>
-    <td align="center"><sub>progress</sub></td>
-    <td align="center"><sub>muscle insights</sub></td>
-    <td align="center"><sub>monthly report</sub></td>
-    <td align="center"><sub>training recap</sub></td>
-  </tr>
-</table>
 
 ---
 
