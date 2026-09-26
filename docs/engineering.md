@@ -4,7 +4,7 @@ This is the technical companion to the public [SetWise README](../README.md).
 
 The production source lives in a private repository, so this document focuses on the architecture, data flow, release boundaries, and platform decisions behind the app rather than reproducing commercial implementation code.
 
-> **Current release candidate:** SetWise `2.0.0` build `33`, submitted to App Review on September 26, 2026.
+> **Current release:** SetWise `2.0.0` build `33`, live on the App Store.
 
 ---
 
@@ -436,7 +436,7 @@ Private iCloud / CloudKit sync is planned, but it is **not included in SetWise 2
 
 That is an intentional release boundary.
 
-Introducing synchronization changes the meaning of authority, conflict handling, migration, deletion, recovery, and multi-device behavior. It deserves a separately tested migration rather than being slipped into a major release candidate late in review preparation.
+Introducing synchronization changes the meaning of authority, conflict handling, migration, deletion, recovery, and multi-device behavior. It deserves a separately tested migration rather than being added late to an already finalized major release.
 
 The intended direction is to preserve local-first behavior while using the user's private CloudKit database for durable cross-device sync, with independent export/recovery remaining available.
 
@@ -489,19 +489,19 @@ That includes:
 - StoreKit product configuration
 - support and privacy URLs
 - release versioning
-- submitted-build discipline
+- shipped-build discipline
 
-For the current major update:
+For the current major release:
 
 | | |
 |---|---|
 | Version | `2.0.0` |
 | Build | `33` |
-| Status | Submitted to App Review on September 26, 2026 |
+| Status | Live on the App Store |
 | Minimum OS | iOS 17 |
 | iCloud sync | Not included in this binary |
 
-Once a build is submitted, it is treated as frozen. New feature work moves to the next build/version rather than changing the meaning of the binary under review.
+Once a build ships, it is treated as frozen. New feature work moves to the next build/version rather than changing the meaning of a production binary after release.
 
 The public App Store listing is here:
 
