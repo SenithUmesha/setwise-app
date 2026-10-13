@@ -2,38 +2,37 @@
 
 This is the technical companion to the public [SetWise README](../README.md).
 
-The production source lives in a private repository, so this document focuses on the architecture, data flow, release boundaries, and platform decisions behind the app rather than reproducing commercial implementation code.
+The production source lives in a private repository, so this document focuses on architecture, data flow, release boundaries, and platform decisions rather than reproducing commercial implementation code.
 
-> **Current release:** SetWise `2.0.0` build `33`, live on the App Store.
+> **Current release state:** SetWise `2.1.0` build `34` was submitted for App Review on October 13, 2026. `2.0.0 (33)` remains the live App Store version until Apple approves/releases the update.
 
 ---
 
-## 1. goals that shaped the architecture
+## 1. product constraints that shape the architecture
 
-SetWise is built around a few product constraints that are also architectural constraints:
+SetWise is designed around a few rules that are also engineering constraints:
 
 - native iOS / iPadOS
 - useful completely offline
-- no account required
-- no backend dependency for workout data
+- no SetWise account required
+- no custom backend dependency for workout data
 - no advertising or in-app analytics SDK
 - unlimited core workout logging without a subscription
-- deterministic training/recovery calculations that can be tested
+- deterministic training/recovery calculations
 - widgets and system integrations without duplicating the main persistence layer
-- user-controlled import/export
-- a real App Store release path including StoreKit, TestFlight, privacy configuration, and release builds
+- private iCloud sync without making the gym-floor workflow network-dependent
+- independent backup/restore because synchronization is not disaster recovery
+- a real App Store path including StoreKit, CloudKit, TestFlight, privacy configuration, and signed release builds
 
-Those constraints push the app toward a deliberately simple rule:
+The central rule is:
 
-> keep local training data authoritative, then derive everything else from it.
-
-The architecture therefore favors clear domain boundaries over distributed infrastructure. SwiftData owns the primary product state; Apple platform integrations sit around that state as optional surfaces rather than becoming separate sources of truth.
+> make local training state durable first, then synchronize and derive external surfaces from it.
 
 ---
 
-## 2. SetWise 2.0 product loop
+## 2. the training loop
 
-The original product centered heavily on recovery. Version 2.0 expands that into a complete strength-training loop:
+SetWise is built around one connected strength-training loop:
 
 ```text
 Plan
@@ -47,38 +46,24 @@ Review
 Use the context in the next session
 ```
 
-That means the architecture now has to support more than a workout logger:
+That single model supports saved plans, rotating/fixed schedules, freestyle workouts, active workout persistence, multiple set types, supersets/circuits, substitutions, editable completed sessions, History, progress, recovery context, reports, recaps, imports, widgets, and Free/Pro boundaries.
 
-- saved plans and templates
-- fixed-weekday and rotating schedules
-- freestyle workouts
-- active workout persistence
-- multiple set types
-- supersets and circuits
-- exercise substitutions
-- completed-session editing
-- history and calendar views
-- exercise progress
-- muscle distribution / insights
-- recovery context
-- monthly reports
-- yearly recaps
-- import/export
-- Free/Pro feature boundaries
-- widgets, intents, notifications, and background refresh
-
-The challenge is not simply adding these features. It is making them projections of the same training history rather than separate mini-products with incompatible data models.
+The important design property is that these are projections of the same training history instead of separate mini-products with incompatible sources of truth.
 
 ---
 
-## 3. app structure
+## 3. project shape
 
-At a high level the production project follows this shape:
+The private production project is organized broadly as:
 
 ```text
 SetWise/
 ├── App/
 ├── Data/
+│   ├── Backup/
+│   ├── Cloud/
+│   ├── Repositories/
+│   └── SwiftData/
 ├── DesignSystem/
 ├── Domain/
 ├── Features/
@@ -86,7 +71,6 @@ SetWise/
 ├── Notifications/
 ├── Purchases/
 ├── Refresh/
-├── Settings/
 └── Shared/
 
 SetWiseWidget/
@@ -94,7 +78,7 @@ SetWiseTests/
 SetWiseUITests/
 ```
 
-The dependency direction is intentionally straightforward:
+Dependency direction stays straightforward:
 
 ```text
 SwiftUI feature views
@@ -105,101 +89,134 @@ use cases + domain services
         ↓
 repositories
         ↓
-SwiftData + lightweight Apple storage + system frameworks
+local SwiftData store + Apple platform integrations
 ```
 
-There is no benefit in turning a product this size into an imitation of a huge enterprise backend. The useful boundary is the one that keeps product rules testable and prevents every screen from talking directly to persistence, StoreKit, notifications, or widget state.
+CloudKit, StoreKit, notifications, widget snapshots, and file import/export live around the product model rather than leaking into every screen.
 
 ---
 
-## 4. persistence: local first because that is the product
+## 4. local-first persistence
 
-Workout state should not depend on network reachability.
+Workout state should never depend on network reachability.
 
-SetWise stores its primary user-created data locally with **SwiftData**. That includes the core training model: plans, exercises, active/completed sessions, set logs, history, progress inputs, and other durable workout state.
+SetWise stores its primary user-created state locally with SwiftData. That includes durable exercise definitions, workout programs, completed sessions, recovery check-ins, and active workout sessions.
 
-Simple preferences and lightweight integration state can live outside the main model graph when appropriate.
+The local store gives the app the behavior a gym-floor product needs:
 
-The important rule is:
+- History opens without a network fetch
+- starting/resuming a workout does not wait for iCloud
+- set edits become durable locally while training
+- a completed workout is available to analytics immediately
+- recovery/progress can be derived from the same local history
+- widgets can be regenerated from local state
+- exports can be generated without a remote service
 
-> the device copy is not a cache of the "real" remote state — in 2.0, it is the real state.
-
-That gives the product useful properties:
-
-- opening History never requires a network fetch
-- starting or resuming a workout does not wait for connectivity
-- set edits become durable locally as the user trains
-- completed workouts are immediately available to analytics
-- recovery can be recalculated from the same training data
-- exports can be generated without a server
-- widgets can be produced from local state
-
-Hosted exercise demonstration media is intentionally separate from private workout data. A guide may request reviewed media from the SetWise website, but workout history is not sent with that request.
+The physical 2.1 release-candidate test completed a workout with the phone genuinely offline, relaunched the target app while still offline, retained the exact workout once, then synchronized that workout after reconnect.
 
 ---
 
-## 5. plans, templates, and scheduling
+## 5. private CloudKit sync in 2.1
 
-SetWise 2.0 supports planned training without making the plan itself the historical truth.
+Version 2.1 adds synchronization through the user's **private CloudKit database**.
 
 Conceptually:
+
+```text
+local SwiftData store
+       ⇅
+private CloudKit database
+       ⇅
+other eligible Apple devices
+```
+
+The current durable synchronized model set covers:
+
+- workout sessions
+- workout programs
+- exercise definitions
+- recovery check-ins
+- active workout sessions
+
+The application does not run a custom SetWise training-data backend and does not create a SetWise account.
+
+Cloud availability is also not presented as a fake "everything is synced" indicator. Account/container availability and confirmed record propagation are different facts.
+
+### conflict behavior
+
+A particularly important 2.1 edge case was concurrent active workouts on two endpoints.
+
+Instead of collapsing two distinct active drafts into one UI state, the app preserves both logical IDs and presents a deterministic chooser. Selection/discard operate on the exact UUID; finishing one draft removes only that draft and produces one completed workout.
+
+That turns a synchronization collision into an explicit product state instead of silent data loss.
+
+---
+
+## 6. sync is not backup
+
+Cloud synchronization is intentionally separate from backup.
+
+A synchronized edit or deletion can propagate, so SetWise 2.1 adds a versioned JSON recovery format that is user-controlled and independent of CloudKit.
+
+The recovery flow supports:
+
+- local export
+- restore preview
+- Merge
+- Replace
+- idempotent repeated merge behavior
+- compatibility handling for earlier backup versions where supported
+
+The verified physical 2.1 backup contained 12 workouts, 2 recovery check-ins, 2 programs, and 153 exercises. Restoring that exact file into an independent non-CloudKit store preserved logical IDs, re-exported byte-identically at the original timestamp, and inserted zero durable records on a second merge.
+
+Active unfinished workout drafts remain excluded from the disaster-recovery backup by design.
+
+---
+
+## 7. safe migration and failure handling
+
+Introducing CloudKit changes persistence constraints, so 2.1 was treated as a migration rather than a late toggle.
+
+The release work included:
+
+- a synthetic populated 2.0 store fixture
+- CloudKit-compatible defaults for mirrored nonoptional fields
+- stable logical IDs across migration
+- local store preservation checks
+- explicit handling when a persistent store cannot be opened
+- no silent fallback to a writable ephemeral store for real workout data
+
+The physical TestFlight upgrade preserved the populated 2.0 dataset, and a later same-device uninstall/reinstall allowed Production CloudKit to reconstruct the durable workout history naturally rather than injecting the old SQLite file.
+
+---
+
+## 8. plans, active workouts, and historical snapshots
+
+Plans can evolve. Completed sessions should not.
 
 ```text
 plan / template
       ↓
 scheduling rules
       ↓
-next workout context
+next-workout context
       ↓
 materialized active session
+      ↓
+completed historical snapshot
 ```
 
-Plans can evolve. Completed sessions should not.
+A user can change next week's program without rewriting last week's completed workout.
 
-That distinction lets a user change next week's program without silently mutating the workout they completed last week.
-
-Scheduling includes both fixed-weekday and rotating approaches, while freestyle workouts bypass the plan completely and still land in the same completed-workout model.
+Active sessions are persisted product state rather than temporary SwiftUI state because users lock the phone, change music, answer messages, background the app, lose connectivity, or resume later.
 
 ---
 
-## 6. active workout lifecycle
+## 9. one history, many projections
 
-The active workout flow is where local persistence matters most.
+Completed workouts are the canonical historical input for:
 
-A session can outlive the current view or foreground lifecycle. Users lock the phone, change music, answer messages, background the app, or return later.
-
-So the active workout is treated as real product state rather than temporary SwiftUI state.
-
-```text
-plan / routine / freestyle
-          ↓
-start workout
-          ↓
-materialize active session
-          ↓
-edit exercises + sets
-          ↓
-persist while training
-          ↓
-finish workout
-          ↓
-freeze completed result into history
-          ↓
-rebuild derived training context
-```
-
-The workout model supports richer gym-floor behavior in 2.0, including previous-performance context, multiple set types, substitutions, supersets/circuits, rest utilities, and workout editing.
-
-The UI can change significantly without changing the core rule: the finished session records what actually happened.
-
----
-
-## 7. one training history, many projections
-
-SetWise does not maintain unrelated databases for analytics, recovery, reports, and widgets.
-
-Completed workouts form the canonical historical input for views such as:
-
+- raw History
 - calendar presence
 - exercise progress
 - training volume
@@ -210,8 +227,6 @@ Completed workouts form the canonical historical input for views such as:
 - yearly recaps
 - widget snapshots
 
-Conceptually:
-
 ```text
 completed workouts
        ↓
@@ -220,29 +235,15 @@ domain projections
 progress / recovery / reports / recaps / widgets
 ```
 
-Some derived data can be cached or precomputed for responsiveness, but the design goal is to keep those results reproducible from authoritative training history.
-
-That reduces the chance that two screens disagree about the same workout.
+Some values may be cached for responsiveness, but the design goal is reproducibility from authoritative training history.
 
 ---
 
-## 8. recovery engine
+## 10. deterministic recovery
 
-Recovery in SetWise is deliberately **deterministic**.
+Recovery in SetWise is deterministic rather than a black-box coaching system.
 
-It is not a machine-learning system and it is not presented as medical guidance.
-
-The engine works from source information such as:
-
-```text
-completed training
-elapsed time
-muscle stimulus / training load
-recent workout context
-user-entered inputs where applicable
-```
-
-The central design choice is to avoid storing a calculated recovery percentage as permanent truth.
+Inputs include completed training, elapsed time, muscle stimulus/load, recent workout context, and user-entered signals where applicable.
 
 ```text
 source data + current time
@@ -252,95 +253,54 @@ source data + current time
  current recovery context
 ```
 
-If the same source data is evaluated later, the result may change because time itself is an input.
-
-That makes the engine explainable and unit-testable: given known history and a fixed clock, the output should be predictable.
-
-Recovery wording is intentionally framed as training context. The app avoids presenting readiness calculations as diagnosis, injury detection, or medical certainty.
+The app avoids presenting readiness as diagnosis, injury detection, or medical certainty.
 
 ---
 
-## 9. progress, reports, and recaps
-
-The deeper review layer in 2.0 is still based on completed training rather than manually maintained analytics state.
-
-The product can derive:
-
-- exercise trends
-- volume and performance views
-- muscle distribution
-- monthly reports
-- period comparisons
-- yearly recap data
-
-The important architectural property is consistency. A report and an exercise-progress screen may present different views of the data, but they should start from the same completed sessions and domain rules.
-
-This is also where the Free/Pro boundary is enforced as a product-access concern rather than by creating separate storage models for paying users.
-
----
-
-## 10. Free / Pro boundary
+## 11. StoreKit and the Free / Pro boundary
 
 SetWise Pro is a **single lifetime StoreKit 2 purchase** with restore support.
 
-The free product keeps the core workout loop useful, including unlimited workout logging and raw history. Pro expands depth and range: more planning capacity, longer analysis windows, deeper exercise/muscle insights, older reports, recaps, widgets, and advanced customization.
+Free keeps the core workout loop useful, including unlimited workout logging and raw history. Pro expands planning capacity, longer analysis ranges, deeper exercise/muscle insights, older reports, recaps, widgets, and advanced customization.
 
-The purchase layer is kept separate from feature implementation so product code can ask a capability question such as:
+The purchase layer exposes capabilities rather than scattering StoreKit transaction code throughout feature views.
 
-```text
-is this feature available for the current entitlement?
-```
-
-instead of embedding StoreKit transaction handling throughout SwiftUI views.
-
-Localized pricing is displayed from StoreKit at runtime. The application should not treat a hard-coded currency string as the source of truth for the purchase price.
+Localized pricing comes from StoreKit `displayPrice` at runtime. The public US `$9.99` value is only a storefront reference, not a hard-coded in-app price source.
 
 ---
 
-## 11. import and export
+## 12. exercise media as reviewed content
 
-Version 2.0 expands data portability while keeping the app local-first.
+SetWise owns stable exercise identifiers and curated metadata.
 
-Import/export flows include user-controlled mechanisms such as:
-
-- Hevy CSV import processed on-device
-- JSON export
-- local recovery / portability paths
-- delete-all-data controls
-
-Imported records must normalize into SetWise's own stable domain model rather than making external identifiers or source formats authoritative forever.
-
-The same principle applies to exports: exporting data should not require a SetWise account or remote service.
-
----
-
-## 12. exercise library and media
-
-SetWise owns stable exercise identifiers and curated exercise metadata.
-
-Hosted animation/media is treated as reviewed content, not an automatic lookup where a vaguely similar movement is considered good enough.
-
-The production workflow therefore separates:
+Hosted media follows:
 
 ```text
 exercise identity + metadata
           ↓
-reviewed media mapping
+reviewed movement mapping
           ↓
-allowlisted hosted asset
+provenance + digest validation
+          ↓
+allowlisted hosted GIF
 ```
 
-If no reviewed animation exists, the product can show a placeholder rather than silently substituting a different exercise.
+Current catalog state:
 
-That keeps the training model stable even as media coverage grows independently.
+- 149 built-in exercises
+- 120 reviewed hosted animations
+- 29 intentional placeholders
+- 26 reviewed animations added in the 2.1 expansion
+
+If an exact reviewed animation does not exist, the UI prefers a placeholder over a visually similar but incorrect movement.
 
 ---
 
-## 13. WidgetKit without sharing the whole database
+## 13. widgets without sharing the whole database
 
-The widget extension does **not** own the full application model layer.
+The widget extension does not own the full application model graph or CloudKit configuration.
 
-Instead, the main app writes a small Codable snapshot into an **App Group** container. WidgetKit reads that snapshot and renders from it.
+Instead:
 
 ```text
 SwiftData + domain logic
@@ -354,175 +314,117 @@ App Group container
 WidgetKit timeline
 ```
 
-The snapshot can include things such as:
+The snapshot can include readiness, next-workout context, streak/calendar summaries, and values used by the supported widget families.
 
-- generated-at timestamp
-- recovery summary
-- next-workout context
-- streak/calendar summary
-- values required by supported widget families
-
-A widget snapshot is derived state. It is not a second source of truth.
-
-If the snapshot is absent or stale, the extension should degrade safely instead of trying to recreate the entire application model in a second process.
+A widget snapshot is derived state, not another source of truth. The 2.1 physical release smoke directly inspected rendered Home Screen widgets rather than relying only on App Group files.
 
 ---
 
-## 14. background refresh
+## 14. background work and remote changes
 
-SetWise uses background refresh to improve freshness, not to guarantee correctness.
+Background refresh improves freshness; it does not define correctness because iOS owns scheduling.
 
-That distinction matters because **iOS owns the schedule**.
+Important refresh work also happens on deterministic lifecycle events such as launch, foregrounding, workout completion/editing, and relevant settings changes.
 
-The application requests background execution, but core correctness cannot depend on a task running at a specific time. Important state is also refreshed during deterministic lifecycle events such as:
+The 2.1 app also has the distribution entitlements needed for CloudKit remote-change handling, while widget data still flows through the local App Group snapshot.
 
-- app launch
-- returning to foreground
-- completing or editing a workout
-- changing relevant settings
-
-Background work can then improve supporting surfaces by refreshing snapshots, reloading widget timelines, updating reminder schedules, and preparing the next refresh request.
-
-If iOS delays background work, opening SetWise must still produce correct state from local source data.
+A documented verification limitation remains: a second physical iPhone was unavailable, so real-device-to-real-device APNs timing/background widget behavior was not directly exercised. Development cross-endpoint convergence used a physical iPhone plus signed-in simulator, while Production/TestFlight behavior was verified on the physical phone.
 
 ---
 
-## 15. notifications and App Intents
+## 15. privacy posture
 
-SetWise uses **local notifications** rather than push infrastructure for product reminders that can be determined entirely on-device.
+Privacy is an architectural choice rather than only marketing copy.
 
-Notification handling still has normal platform concerns:
-
-- permission state
-- user preferences
-- scheduling/replacing pending requests
-- notification actions
-- deep links into relevant flows
-
-Selected capabilities are also exposed through **App Intents** so Shortcuts and system surfaces can enter the same underlying product services.
-
-The important boundary is that an intent should call the same application/domain logic as the UI rather than reimplementing product rules in a parallel code path.
-
----
-
-## 16. privacy posture
-
-Privacy is an architectural choice here, not only App Store copy.
-
-SetWise 2.0 is designed around:
+SetWise is designed around:
 
 ```text
 no SetWise account
-no workout-data backend
+no custom workout-data backend
 no advertising SDK
 no in-app analytics / tracking SDK
-local SwiftData persistence
-user-controlled import/export
-local deletion
+local-first SwiftData persistence
+private CloudKit sync in enabled builds
+independent user-controlled backup/export
+local deletion controls
 Apple-managed purchase processing
 ```
 
-The project includes an Apple privacy manifest and public privacy/support documentation.
-
-Hosted exercise media and public website/support resources are normal network-facing content paths; private workout history and plans are not sent along with those requests.
+Hosted exercise media and the public website/support pages are network-facing content paths, but exercise-media delivery does not include private workout/program/recovery records.
 
 Public privacy policy: [setwise.senithumesha.com/privacy](https://setwise.senithumesha.com/privacy)
 
 ---
 
-## 17. iCloud is intentionally post-2.0
+## 16. testing and release verification
 
-Private iCloud / CloudKit sync is planned, but it is **not included in SetWise 2.0.0 build 33**.
+The production project contains both unit tests and UI tests, plus physical-device release checks for flows where simulator-only coverage is not enough.
 
-That is an intentional release boundary.
+For the verified 2.1 build-34 release candidate:
 
-Introducing synchronization changes the meaning of authority, conflict handling, migration, deletion, recovery, and multi-device behavior. It deserves a separately tested migration rather than being added late to an already finalized major release.
+- **261/261 unit tests passed**
+- **60/60 UI tests passed**
+- Debug and Release simulator builds passed
+- generic signed-device build passed
+- static analysis passed
+- signed archive/signature checks passed
+- app/widget entitlement shapes were inspected
+- populated 2.0 → 2.1 physical upgrade passed
+- Production CloudKit records were confirmed
+- genuine physical offline workout + offline target restart passed
+- same-device TestFlight reinstall/reconstruction passed
+- physical backup/restore preview and independent restore passed
+- Light/Dark, exercise media, and rendered widget smoke passed
 
-The intended direction is to preserve local-first behavior while using the user's private CloudKit database for durable cross-device sync, with independent export/recovery remaining available.
-
-Until that work ships, the local SwiftData store remains authoritative.
-
----
-
-## 18. testing
-
-The production project contains both **unit tests** and **UI tests**.
-
-High-value unit-test targets are the pieces that should remain deterministic:
-
-- recovery calculations
-- scheduling rules
-- workout-selection logic
-- history/progress projections
-- report calculations
-- data compatibility and migrations
-- entitlement-access rules where isolated from StoreKit
-- import normalization
-
-UI coverage focuses on release-critical flows such as:
-
-- starting planned and freestyle workouts
-- editing set rows
-- substitutions / workout editing
-- resuming an active session
-- completing a workout
-- navigating plans, history, and analytics
-- purchase/restore surfaces
-- import and migration flows
-
-The goal is not an arbitrary coverage percentage. It is making the core workout loop and product rules expensive to break accidentally.
+The release process deliberately distinguishes simulator evidence, physical-device evidence, Production CloudKit evidence, and inference rather than calling all of them the same thing.
 
 ---
 
-## 19. release engineering
+## 17. release engineering
 
-SetWise goes through the full native App Store path rather than stopping at a simulator demo.
-
-That includes:
+SetWise uses the full native App Store path:
 
 - app + widget targets
-- App Groups and entitlements
-- signing and archive validation
-- privacy manifest work
-- App Store metadata and screenshots
+- App Groups and CloudKit entitlements
+- signing/archive validation
+- privacy manifest and public privacy/support pages
+- App Store metadata/screenshots
 - TestFlight validation
-- StoreKit product configuration
-- support and privacy URLs
-- release versioning
+- StoreKit configuration
+- Production CloudKit schema promotion/inspection
+- monotonically increasing build numbers
 - shipped-build discipline
 
-For the current major release:
+Current state:
 
 | | |
 |---|---|
-| Version | `2.0.0` |
-| Build | `33` |
-| Status | Live on the App Store |
+| Submitted version | `2.1.0` |
+| Submitted build | `34` |
+| App Review state | Submitted October 13, 2026; awaiting Apple review |
+| Live App Store version | `2.0.0 (33)` until 2.1 is released |
 | Minimum OS | iOS 17 |
-| iCloud sync | Not included in this binary |
+| Private iCloud sync | Included in 2.1 |
+| Independent backup/restore | Included in 2.1 |
 
-Once a build ships, it is treated as frozen. New feature work moves to the next build/version rather than changing the meaning of a production binary after release.
-
-The public App Store listing is here:
-
-**[SetWise: Workout & Recovery](https://apps.apple.com/us/app/setwise-workout-recovery/id6796000747)**
+Build 34 remains the verified binary because later release-candidate commits changed documentation/UI-test code rather than shipped runtime behavior. No unnecessary build 35 was created.
 
 ---
 
-## 20. decisions i would keep
+## 18. decisions i would keep
 
-If I rebuilt the product today, I would keep these choices:
-
-1. **local source of truth** — it matches the gym-floor product better than introducing remote dependency for its own sake.
-2. **completed workouts as historical snapshots** — future plan edits should not rewrite the past.
-3. **deterministic recovery** — explainable and testable beats fake intelligence here.
-4. **analytics as projections of completed training** — one history should power many views.
-5. **snapshot-based widgets** — much cleaner than making an extension own the entire application database.
-6. **background refresh as an optimization** — never depend on an OS-controlled schedule for correctness.
-7. **StoreKit behind capability boundaries** — purchase state should not leak into every screen.
-8. **Free as a real product** — paid depth is healthier than turning core logging into a subscription gate.
-9. **sync as a deliberate migration** — multi-device state deserves its own design and testing cycle.
-10. **native system features as product surfaces** — widgets, intents, notifications, and StoreKit are part of the app, not demo checkboxes.
+1. **local-first workout behavior** — network reachability should not be a gym-floor dependency.
+2. **private CloudKit instead of a custom account backend** — use the user's Apple infrastructure when sync is needed.
+3. **sync and backup as different systems** — synchronization cannot be the only recovery strategy.
+4. **completed workouts as historical snapshots** — future plan edits should not rewrite the past.
+5. **explicit active-draft collision handling** — preserve IDs instead of silently picking a winner in the UI.
+6. **deterministic recovery** — explainable and testable beats fake intelligence.
+7. **analytics as projections of completed training** — one history powers many views.
+8. **snapshot-based widgets** — much cleaner than making an extension own the entire model graph.
+9. **background refresh as an optimization** — correctness must survive delayed execution.
+10. **StoreKit behind capability boundaries** — purchase state should not leak into every feature.
+11. **reviewed media with placeholders** — correctness and provenance beat maximum coverage.
+12. **physical release verification for persistence changes** — migrations and offline behavior deserve more than simulator confidence.
 
 ---
 

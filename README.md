@@ -25,7 +25,7 @@
 </p>
 
 <p align="center">
-  <code>SwiftUI</code> · <code>SwiftData</code> · <code>WidgetKit</code> · <code>App Intents</code> · <code>StoreKit 2</code> · <code>local-first</code>
+  <code>SwiftUI</code> · <code>SwiftData</code> · <code>CloudKit</code> · <code>WidgetKit</code> · <code>StoreKit 2</code> · <code>local-first</code>
 </p>
 
 <p align="center">
@@ -34,25 +34,21 @@
 
 ---
 
-## SetWise 2.0
+## SetWise 2.1
 
-**Version 2.0.0 · build 33** is live on the **App Store**.
+**Version 2.1.0 · build 34** was submitted for **App Review on October 13, 2026**. Until Apple approves/releases it, **2.0.0 · build 33** remains the live App Store version.
 
-SetWise 2.0 expands the original recovery-focused app into a complete training loop:
+SetWise 2.1 keeps the gym-floor workflow local-first while adding private sync and a separate recovery path:
 
-```text
-Plan
-  ↓
-Train
-  ↓
-Finish
-  ↓
-Review
-  ↓
-Use the context in the next session
-```
+- private CloudKit sync through the user's own iCloud account
+- core workout logging that continues to work offline
+- independent versioned JSON backup and restore with preview, Merge, and Replace flows
+- safe migration from the existing 2.0 local store
+- deterministic handling for multiple synchronized active-workout drafts
+- expanded reviewed exercise-demo coverage
+- the same one-time SetWise Pro model with no recurring subscription
 
-It brings workout planning, freestyle training, richer set logging, editable history, progress analytics, muscle insights, reports, yearly recaps, import/export, recovery, widgets, and a Free/Pro model into one native iOS product.
+The release candidate was verified on the actual TestFlight build with a populated upgrade, same-device reinstall/reconstruction, a genuinely offline completed workout and offline restart, Production CloudKit record confirmation, backup/restore round trip, Light/Dark UI, hosted-media failure/recovery, and rendered Home Screen widgets.
 
 ---
 
@@ -60,35 +56,35 @@ It brings workout planning, freestyle training, richer set logging, editable his
 
 Most workout apps are good at recording sets. I wanted the context around those sets too: what was planned, what actually happened, what changed, and what should be visible before the next session.
 
-So SetWise is built around completed training rather than around a social feed or a cloud account.
+So SetWise is built around completed training rather than around a social feed or a proprietary cloud account.
 
-- no account required to train
+- no SetWise account required to train
 - no ads
 - no recurring subscription
 - no in-app analytics SDK
-- no AI coach pretending to know your body
+- no custom workout-data backend
 - core workout logging works offline
 
 ---
 
-## SetWise 2.0 in screenshots
+## current product screenshots
 
 <table>
   <tr>
-    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/1.png" width="210" alt="SetWise 2.0 screenshot 1" /></td>
-    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/2.png" width="210" alt="SetWise 2.0 screenshot 2" /></td>
-    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/3.png" width="210" alt="SetWise 2.0 screenshot 3" /></td>
-    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/4.png" width="210" alt="SetWise 2.0 screenshot 4" /></td>
+    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/1.png" width="210" alt="SetWise screenshot 1" /></td>
+    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/2.png" width="210" alt="SetWise screenshot 2" /></td>
+    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/3.png" width="210" alt="SetWise screenshot 3" /></td>
+    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/4.png" width="210" alt="SetWise screenshot 4" /></td>
   </tr>
   <tr>
-    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/5.png" width="210" alt="SetWise 2.0 screenshot 5" /></td>
-    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/6.png" width="210" alt="SetWise 2.0 screenshot 6" /></td>
-    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/7.png" width="210" alt="SetWise 2.0 screenshot 7" /></td>
+    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/5.png" width="210" alt="SetWise screenshot 5" /></td>
+    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/6.png" width="210" alt="SetWise screenshot 6" /></td>
+    <td align="center"><img src="https://senithumesha.com/images/projects/setwise/7.png" width="210" alt="SetWise screenshot 7" /></td>
     <td></td>
   </tr>
 </table>
 
-These are the same current screenshots used by my portfolio so the public product repo and portfolio stay aligned.
+These captures show the current 2.x product UI and are shared with my portfolio so the public product repo and portfolio stay aligned.
 
 ---
 
@@ -114,13 +110,35 @@ The active workout is designed for the few seconds between sets.
 - exercise substitution without rebuilding the session
 - automatic rest timing with quick adjustments
 - plate calculator and training utilities
-- active-session persistence across app backgrounding and interruptions
+- persistent active sessions that survive app/background interruptions
+- synchronized-draft collision handling that preserves distinct active workouts instead of silently discarding one
 
-### reviewed exercise media
+## sync without giving up offline training
 
-The exercise library now has a larger reviewed media catalog. The production app only allowlists exercise animations after movement-match, provenance, digest, and visual review.
+SetWise 2.1 uses the user's **private iCloud / CloudKit database** for durable cross-device synchronization.
 
-That means SetWise prefers an honest placeholder over silently showing a merely similar exercise. The current reviewed expansion includes **26 deployed and verified exercise GIFs**, aligned with the app catalog after the 2.0 release.
+The local store is still the immediate working state. A workout can start, change, finish, and survive an app restart without a network connection; CloudKit reconciliation happens when connectivity is available.
+
+SetWise does not create its own login system or operate a custom workout-data backend.
+
+Sync is intentionally **not** treated as backup. An edit or deletion can synchronize too, so 2.1 adds a versioned JSON backup/restore path that remains independent of CloudKit.
+
+---
+
+## reviewed exercise media
+
+SetWise owns stable exercise identities and only allowlists hosted media after movement-match, provenance, digest, and visual review.
+
+The current catalog contains:
+
+- **149 built-in exercises**
+- **120 reviewed hosted animations**
+- **29 intentional placeholders** where no exact reviewed media is available
+- **26 newly reviewed animations** added in the 2.1 media expansion
+
+SetWise prefers an honest placeholder over silently showing a merely similar movement.
+
+---
 
 ## finish + review
 
@@ -151,19 +169,18 @@ No recurring billing.
 
 ---
 
-## import, export, and ownership
+## import, backup, restore, and ownership
 
-SetWise 2.0 supports user-controlled data movement without turning the app into a cloud-account product.
+SetWise supports user-controlled data movement without turning the app into a proprietary cloud-account product.
 
 - on-device Hevy CSV import
-- local user-controlled export
-- JSON export/recovery paths
+- private iCloud sync in 2.1-enabled builds
+- independent versioned JSON backup/export
+- restore preview with Merge and Replace paths
 - delete-all-data controls
 - no SetWise account required
 
-The production app still treats the local SwiftData store as the source of truth.
-
-Private iCloud / CloudKit sync is planned for a separately tested post-2.0 release. It is **not** part of build 33.
+A CloudKit account-availability state is not presented as proof that every recent record has already synchronized. Backup remains a separate user-controlled recovery mechanism.
 
 ---
 
@@ -178,7 +195,9 @@ use cases + domain services
    ↓
 repositories
    ↓
-SwiftData + UserDefaults / AppStorage + Apple system frameworks
+local SwiftData store ⇄ private CloudKit sync
+   ↓
+App Group snapshots / Apple system integrations
 ```
 
 Platform work includes:
@@ -186,6 +205,7 @@ Platform work includes:
 ```text
 SwiftUI               screens + interaction
 SwiftData              local plans, workouts, history + training state
+CloudKit               private durable-data synchronization
 WidgetKit              recovery, calendar, streak + next-workout surfaces
 App Intents            Shortcuts / system actions
 App Groups             lightweight widget snapshot sharing
@@ -197,7 +217,7 @@ TestFlight             release validation
 Privacy manifest       explicit platform privacy configuration
 ```
 
-The main app remains the source of truth. Widgets receive lightweight App Group snapshots and degrade safely if that snapshot is missing or stale.
+The local app store remains the immediate source for product behavior. CloudKit synchronizes durable model data; widgets receive lightweight App Group snapshots and do not own the full model graph.
 
 More implementation notes live in **[docs/engineering.md](docs/engineering.md)**.
 
@@ -205,16 +225,17 @@ More implementation notes live in **[docs/engineering.md](docs/engineering.md)**
 
 ## privacy by design
 
-- no account
+- no SetWise account
 - no advertising
 - no social feed
 - no tracking pixels or in-app analytics SDK
-- workout history stays on-device
-- local import/export under user control
+- local-first workout logging
+- private iCloud sync handled through Apple's CloudKit in enabled builds
+- no custom SetWise workout-data backend
+- independent user-controlled backup/export
 - delete-all-data flow in Settings
 - purchases handled by Apple
 - widgets share only a lightweight local snapshot
-- no iCloud training-data sync in 2.0.0 build 33
 
 Full policy: **[setwise.senithumesha.com/privacy](https://setwise.senithumesha.com/privacy)**
 
@@ -224,15 +245,17 @@ Full policy: **[setwise.senithumesha.com/privacy](https://setwise.senithumesha.c
 
 | | |
 |---|---|
-| Marketing version | `2.0.0` |
-| Build | `33` |
-| Status | Live on the App Store |
+| Submitted marketing version | `2.1.0` |
+| Submitted build | `34` |
+| Status | Submitted for App Review on October 13, 2026 |
+| Live App Store version | `2.0.0 (33)` until Apple releases 2.1 |
 | Minimum OS | iOS 17 |
 | Purchase model | Free core + one-time lifetime SetWise Pro |
 | Primary data model | Local-first SwiftData |
-| Cloud sync | Planned post-2.0; not included in build 33 |
+| Cloud sync | Private CloudKit sync in 2.1 |
+| Recovery path | Independent versioned JSON backup/restore |
 
-The shipped 2.0 binary is treated as frozen. New product work belongs in the next release rather than changing the meaning of a production build after release.
+Build 34 was verified as the release candidate; no later shipped-runtime change required a build 35.
 
 ---
 
@@ -240,7 +263,7 @@ The shipped 2.0 binary is treated as frozen. New product work belongs in the nex
 
 This is the **public product + engineering showcase** for SetWise.
 
-The production application source is private. This repo exists so I can share the product, screenshots, architecture decisions, release thinking, and interesting engineering work without publishing commercial source, signing configuration, or release infrastructure.
+The production application source is private. This repo exists so I can share the product, screenshots, architecture decisions, release thinking, and interesting engineering work without publishing commercial source, signing configuration, user data, or release infrastructure.
 
 ---
 
