@@ -36,7 +36,7 @@
 
 ## SetWise 2.1
 
-**Version 2.1.0 · build 34** was submitted for **App Review on October 13, 2026**. Until Apple approves/releases it, **2.0.0 · build 33** remains the live App Store version.
+**Version 2.1.0 · build 34** was released on the **App Store on October 13, 2026**. A 2.1.1 stabilization update is being prepared separately; proposed iOS 17.0 compatibility remains unverified until build and device testing.
 
 SetWise 2.1 keeps the gym-floor workflow local-first while adding private sync and a separate recovery path:
 
@@ -247,15 +247,15 @@ Full policy: **[setwise.senithumesha.com/privacy](https://setwise.senithumesha.c
 |---|---|
 | Submitted marketing version | `2.1.0` |
 | Submitted build | `34` |
-| Status | Submitted for App Review on October 13, 2026 |
-| Live App Store version | `2.0.0 (33)` until Apple releases 2.1 |
-| Minimum OS | iOS 17 |
+| Status | Released on the App Store on October 13, 2026 |
+| Live App Store version | `2.1.0 (34)` |
+| Minimum OS | Live 2.1 requires iOS 26.5; proposed 2.1.1 iOS 17 target requires testing |
 | Purchase model | Free core + one-time lifetime SetWise Pro |
 | Primary data model | Local-first SwiftData |
 | Cloud sync | Private CloudKit sync in 2.1 |
 | Recovery path | Independent versioned JSON backup/restore |
 
-Build 34 was verified as the release candidate; no later shipped-runtime change required a build 35.
+Build 34 was verified and released. A separate 2.1.1 maintenance candidate is in progress; its build 35 must pass Xcode and device checks before submission.
 
 ---
 
